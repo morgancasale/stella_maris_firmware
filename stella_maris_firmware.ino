@@ -13,11 +13,13 @@ void setup(){
   pinMode(LED_BUILTIN, OUTPUT);
   pinMode(P0_13, OUTPUT); // charging Pin
 
-  tone(0, 21000);
-  tone(1, 21000);
-
   setup_BLE();
-  setup_EM();
+
+  // The controller doesn't use the electromagnet and uses pin 0 and 1
+  // for buttons
+  if(deviceName != "Controller"){
+    setup_EM();
+  }
 
   Serial.println("Setup complete!");
 
@@ -41,11 +43,7 @@ void loop(){
     digitalWrite(LED_BLUE, LOW);
 
     while (central.connected()){
-      // buttonState = digitalRead(buttonPin);
-      // if(buttonState == HIGH){
-      //   onButtonPress();
-      // }
-      // delay(100);
+      delay(100);
     }
   }
   

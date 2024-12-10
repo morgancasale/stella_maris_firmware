@@ -10,7 +10,7 @@ const int maxCharacteristicBytes = 4;
 
 volatile unsigned long lastDebounceTime = 400;
 
-String deviceName = "Controller";
+String deviceName = "Orange";
 
 // Initialize BLE service and characteristics
 BLEService electromagnetService(serviceUUID.c_str());
@@ -42,9 +42,10 @@ void setup_BLE(){
   commandCharacteristic.setEventHandler(BLEWritten, onCommand);
   modeCharacteristic.setEventHandler(BLEWritten, onModeChange);
 
-  // setup action button
-  //pinMode(buttonPin, INPUT);      // Use internal pull-up resistor
-  attachInterrupt(digitalPinToInterrupt(A2), onButtonPress, RISING); // not working???
+  // setup action button only for the controller
+  if(deviceName == "Controller"){
+    attachInterrupt(digitalPinToInterrupt(buttonPin), onButtonPress, RISING);
+  }
 
   BLE.advertise();
   Serial.println("Bluetooth device active, waiting for connections...");

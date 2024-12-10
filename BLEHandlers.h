@@ -2,7 +2,7 @@
 #define BLEhandlers_h
   #include <ArduinoBLE.h>
 
-  #define buttonPin D2
+  #define buttonPin D0
   #define DEBOUNCE_DELAY 200  // Milliseconds
 
   extern String serviceUUID;
