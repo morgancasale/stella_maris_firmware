@@ -1,7 +1,7 @@
 #ifndef elMagnDriver_h
 #define elMagnDriver_h
   //#include <DRV8835MotorShield.h>
-  //#include <Arduino_LSM6DS3.h>
+  #include <Arduino.h>
 
 
   // Constants for operating modes and electromagnet state

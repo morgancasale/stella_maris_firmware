@@ -11,7 +11,7 @@ void setup(){
   Serial.println("Starting setup...");
 
   pinMode(LED_BUILTIN, OUTPUT);
-  pinMode (P0_13, OUTPUT); // charging Pin
+  pinMode(P0_13, OUTPUT); // charging Pin
 
   tone(0, 21000);
   tone(1, 21000);

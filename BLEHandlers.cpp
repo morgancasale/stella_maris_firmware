@@ -54,6 +54,8 @@ void onButtonPress(){
   unsigned long currentTime = millis();
   if (currentTime - lastDebounceTime > DEBOUNCE_DELAY) {
     //Serial.println("Button pressed!");
+
+    digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
     msgCharacteristic.writeValue(uint32_t(32));
     lastDebounceTime = currentTime;
   }
