@@ -11,6 +11,8 @@ void setup(){
   Serial.println("Starting setup...");
 
   pinMode(LED_BUILTIN, OUTPUT);
+  digitalWrite(LED_BUILTIN, HIGH); // device is on
+
   pinMode(P0_13, OUTPUT); // charging Pin
 
   setup_BLE();

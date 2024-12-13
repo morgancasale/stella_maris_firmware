@@ -17,8 +17,10 @@ void setup_EM(){
 void activateElectromagnet() {
   if (!electromagnetState) {
     //motors.setM1Speed(motorValue);
-    analogWrite(NEGATIVE_PIN, 0);
-    analogWrite(POSITIVE_PIN, EM_POWER);
+    // analogWrite(NEGATIVE_PIN, 0);
+    // analogWrite(POSITIVE_PIN, EM_POWER);
+    digitalWrite(NEGATIVE_PIN, LOW);
+    digitalWrite(POSITIVE_PIN, HIGH);
     
     electromagnetState = ELECTROMAGNET_ON;
     Serial.println("Electromagnet ON");
@@ -28,13 +30,17 @@ void activateElectromagnet() {
 void deactivateElectromagnet() {
   if (electromagnetState) {
     // First put positive current to 0
-    analogWrite(POSITIVE_PIN, 0);
+    // analogWrite(POSITIVE_PIN, 0);
+    digitalWrite(POSITIVE_PIN, LOW);
+
     // Then pass negative current for some time 
-    analogWrite(NEGATIVE_PIN, EM_BACK_CURRENT_POWER);
+    // analogWrite(NEGATIVE_PIN, EM_BACK_CURRENT_POWER);
+    digitalWrite(NEGATIVE_PIN, HIGH);
     delay(EM_BACK_CURRENT_DELAY);
 
     // Finally set negative current also back to 0
-    analogWrite(NEGATIVE_PIN, 0);
+    // analogWrite(NEGATIVE_PIN, 0);
+    digitalWrite(NEGATIVE_PIN, LOW);
 
     electromagnetState = ELECTROMAGNET_OFF;
     Serial.println("Electromagnet OFF");

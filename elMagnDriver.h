@@ -15,7 +15,7 @@
 
   #define EM_POWER 255
   #define EM_BACK_CURRENT_POWER 255
-  #define EM_BACK_CURRENT_DELAY 200
+  #define EM_BACK_CURRENT_DELAY 150
 
   //extern DRV8835MotorShield motors;
   //extern LSM6DS3 myIMU;

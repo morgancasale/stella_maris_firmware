@@ -5,11 +5,13 @@ String serviceUUID = "19B10000-E8F2-537E-4F6C-D104768A1214";
 String cmdCharUUID = "19B10001-E8F2-537E-4F6C-D104768A1214";
 String modeCharUUID = "19B10002-E8F2-537E-4F6C-D104768A1214";
 String msgCharUUID = "19B10003-E8F2-537E-4F6C-D104768A1214";
+String stateCharUUID = "19B10004-E8F2-537E-4F6C-D104768A1214";
 
 const int maxCharacteristicBytes = 4;
 
 volatile unsigned long lastDebounceTime = 400;
 
+// DEVICE NAME
 String deviceName = "Orange";
 
 // Initialize BLE service and characteristics
@@ -17,6 +19,7 @@ BLEService electromagnetService(serviceUUID.c_str());
 BLECharacteristic commandCharacteristic(cmdCharUUID.c_str(), BLEWrite, maxCharacteristicBytes);
 BLECharacteristic modeCharacteristic(modeCharUUID.c_str(), BLEWrite, maxCharacteristicBytes);
 BLECharacteristic msgCharacteristic(msgCharUUID.c_str(), BLERead | BLENotify, maxCharacteristicBytes);
+BLECharacteristic stateCharacteristic(stateCharUUID.c_str(), BLEWrite, maxCharacteristicBytes);
 
 
 void setup_BLE(){
@@ -31,6 +34,7 @@ void setup_BLE(){
   electromagnetService.addCharacteristic(commandCharacteristic);
   electromagnetService.addCharacteristic(modeCharacteristic);
   electromagnetService.addCharacteristic(msgCharacteristic);
+  electromagnetService.addCharacteristic(stateCharacteristic);
   
   BLE.addService(electromagnetService);
 
@@ -52,14 +56,8 @@ void setup_BLE(){
 }
 
 void onButtonPress(){
-  unsigned long currentTime = millis();
-  if (currentTime - lastDebounceTime > DEBOUNCE_DELAY) {
-    //Serial.println("Button pressed!");
-
-    digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
-    msgCharacteristic.writeValue(uint32_t(32));
-    lastDebounceTime = currentTime;
-  }
+  //digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
+  msgCharacteristic.writeValue(uint32_t(32));
 }
 
 void blePeripheralConnectHandler(BLEDevice central) {
@@ -81,10 +79,12 @@ void onCommand(BLEDevice central, BLECharacteristic characteristic){
   int cmdValue = commandCharacteristic.value()[0];
   Serial.println(cmdValue);
 
-  if(electromagnetState){
+  if(cmdValue == 0 || electromagnetState){
     deactivateElectromagnet();
+    //stateCharacteristic.writeValue(0);
   } else {
     activateElectromagnet();
+    //stateCharacteristic.writeValue(1);
   }
 }
 
