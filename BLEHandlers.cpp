@@ -2,25 +2,29 @@
 #include "elMagnDriver.h"
 
 String serviceUUID = "19B10000-E8F2-537E-4F6C-D104768A1214";
-String cmdCharUUID = "19B10001-E8F2-537E-4F6C-D104768A1214";
+String onCmdCharUUID = "19B10001-E8F2-537E-4F6C-D104768A1214";
 String modeCharUUID = "19B10002-E8F2-537E-4F6C-D104768A1214";
-String msgCharUUID = "19B10003-E8F2-537E-4F6C-D104768A1214";
-String stateCharUUID = "19B10004-E8F2-537E-4F6C-D104768A1214";
+String sendCmdCharUUID = "19B10003-E8F2-537E-4F6C-D104768A1214";
+String EMStateCharUUID = "19B10004-E8F2-537E-4F6C-D104768A1214";
 
 const int maxCharacteristicBytes = 4;
 
 volatile unsigned long lastDebounceTime = 400;
 
 // DEVICE NAME
-String deviceName = "Orange";
+String deviceName = "Controller";
 
-// Initialize BLE service and characteristics
+bool buttonPressed = false;
+
+// Initialize BLE service and define characteristics
 BLEService electromagnetService(serviceUUID.c_str());
-BLECharacteristic commandCharacteristic(cmdCharUUID.c_str(), BLEWrite, maxCharacteristicBytes);
-BLECharacteristic modeCharacteristic(modeCharUUID.c_str(), BLEWrite, maxCharacteristicBytes);
-BLECharacteristic msgCharacteristic(msgCharUUID.c_str(), BLERead | BLENotify, maxCharacteristicBytes);
-BLECharacteristic stateCharacteristic(stateCharUUID.c_str(), BLEWrite, maxCharacteristicBytes);
 
+BLECharacteristic onCmdCharacteristic(onCmdCharUUID.c_str(), BLEWrite | BLENotify, maxCharacteristicBytes);
+BLECharacteristic modeCharacteristic(modeCharUUID.c_str(), BLEWrite, maxCharacteristicBytes);
+BLECharacteristic sendCmdCharacteristic(sendCmdCharUUID.c_str(), BLERead | BLENotify, maxCharacteristicBytes);
+
+const String state_templ = "{\"device_name\" : \"" + deviceName + "\", \"EM_state\" : \"%s\"}";
+BLECharacteristic EMStateCharacteristic(EMStateCharUUID.c_str(), BLERead | BLENotify, state_templ.length()+String("false").length()+1);
 
 void setup_BLE(){
   if (!BLE.begin()) {
@@ -31,10 +35,10 @@ void setup_BLE(){
   BLE.setLocalName(deviceName.c_str());
   BLE.setAdvertisedService(electromagnetService);
 
-  electromagnetService.addCharacteristic(commandCharacteristic);
+  electromagnetService.addCharacteristic(onCmdCharacteristic);
   electromagnetService.addCharacteristic(modeCharacteristic);
-  electromagnetService.addCharacteristic(msgCharacteristic);
-  electromagnetService.addCharacteristic(stateCharacteristic);
+  electromagnetService.addCharacteristic(sendCmdCharacteristic);
+  electromagnetService.addCharacteristic(EMStateCharacteristic);
   
   BLE.addService(electromagnetService);
 
@@ -43,13 +47,11 @@ void setup_BLE(){
   BLE.setEventHandler(BLEDisconnected, blePeripheralDisconnectHandler);
 
   // assign events to the characteristics
-  commandCharacteristic.setEventHandler(BLEWritten, onCommand);
-  modeCharacteristic.setEventHandler(BLEWritten, onModeChange);
+  if(deviceName != "Controller") onCmdCharacteristic.setEventHandler(BLEWritten, onCommand);
+  // modeCharacteristic.setEventHandler(BLEWritten, onModeChange);
 
-  // setup action button only for the controller
-  if(deviceName == "Controller"){
-    attachInterrupt(digitalPinToInterrupt(buttonPin), onButtonPress, RISING);
-  }
+  // setup action button only for the controller 
+  attachInterrupt(digitalPinToInterrupt(buttonPin), onButtonPress, RISING);
 
   BLE.advertise();
   Serial.println("Bluetooth device active, waiting for connections...");
@@ -57,13 +59,16 @@ void setup_BLE(){
 
 void onButtonPress(){
   //digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
-  msgCharacteristic.writeValue(uint32_t(32));
+  sendCmdCharacteristic.writeValue(uint32_t(32));
+  buttonPressed = true;
 }
 
 void blePeripheralConnectHandler(BLEDevice central) {
   // central connected event handler
   Serial.print("Connected event, central: ");
   Serial.println(central.address());
+
+  digitalWrite(LED_BLUE, HIGH); 
 }
 
 void blePeripheralDisconnectHandler(BLEDevice central) {
@@ -71,25 +76,47 @@ void blePeripheralDisconnectHandler(BLEDevice central) {
   Serial.print("Disconnected event, central: ");
   Serial.println(central.address());
 
-  digitalWrite(LED_BLUE, HIGH); 
+  deactivateElectromagnet();
+  digitalWrite(LED_BLUE, LOW);
+  //digitalWrite(RED, HIGH);
 }
 
 void onCommand(BLEDevice central, BLECharacteristic characteristic){
   Serial.print("Command received: ");
-  int cmdValue = commandCharacteristic.value()[0];
+  int cmdValue = onCmdCharacteristic.value()[0];
   Serial.println(cmdValue);
 
-  if(cmdValue == 0 || electromagnetState){
+  bool EM_state = (cmdValue == 0 || electromagnetState);
+  String state = (!EM_state) ? "true" : "false";
+
+  char state_msg[50];
+  sprintf(state_msg, state_templ.c_str(), state.c_str());
+
+  if(EM_state){
     deactivateElectromagnet();
-    //stateCharacteristic.writeValue(0);
   } else {
     activateElectromagnet();
-    //stateCharacteristic.writeValue(1);
+  }
+
+  updateEMStatus();  
+}
+
+void updateEMStatus(){
+  String EM_state = electromagnetState ? "true" : "false";
+
+  char state_msg[50];
+  sprintf(state_msg, state_templ.c_str(), EM_state.c_str());
+
+  if(EMStateCharacteristic.writeValue(state_msg)){
+    Serial.print("Written state msg: ");
+    Serial.println(state_msg);
+  } else {
+    Serial.println("Error while writing state!");
   }
 }
 
-void onModeChange(BLEDevice central, BLECharacteristic characteristic){
-  byte value[4];
-  memcpy(value, modeCharacteristic.value(), 4);
-  //deviceMode = value[3] | (value[2] << 8) | (value[1] << 16) | (value[0] << 24);
-}
+// void onModeChange(BLEDevice central, BLECharacteristic characteristic){
+//   byte value[4];
+//   memcpy(value, modeCharacteristic.value(), 4);
+//   //deviceMode = value[3] | (value[2] << 8) | (value[1] << 16) | (value[0] << 24);
+// }

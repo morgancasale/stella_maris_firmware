@@ -5,6 +5,10 @@
   #define buttonPin D2
   #define DEBOUNCE_DELAY 200  // Milliseconds
 
+  #define BLUE 12
+  #define RED 11
+  #define GREEN 13
+
   extern String serviceUUID;
   extern String cmdCharUUID;
   extern String modeCharUUID;
@@ -20,6 +24,8 @@
 
   extern String deviceName;
 
+  extern bool buttonPressed;
+
   void setup_BLE();
 
   void onButtonPress();
@@ -32,4 +38,6 @@
   void onCommand(BLEDevice central, BLECharacteristic characteristic);
   void onModeChange(BLEDevice central, BLECharacteristic characteristic);
 
+  //BLE status updater
+  void updateEMStatus();
 #endif

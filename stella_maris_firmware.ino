@@ -45,6 +45,11 @@ void loop(){
     digitalWrite(LED_BLUE, LOW);
 
     while (central.connected()){
+      if(buttonPressed){
+        Serial.println("Action button pressed!");
+        buttonPressed = false;
+      }
+
       delay(100);
     }
   }
