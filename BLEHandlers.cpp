@@ -54,6 +54,7 @@ void setup_BLE(){
   attachInterrupt(digitalPinToInterrupt(buttonPin), onButtonPress, RISING);
 
   BLE.advertise();
+
   Serial.println("Bluetooth device active, waiting for connections...");
 }
 
@@ -86,18 +87,14 @@ void onCommand(BLEDevice central, BLECharacteristic characteristic){
   int cmdValue = onCmdCharacteristic.value()[0];
   Serial.println(cmdValue);
 
-  bool EM_state = (cmdValue == 0 || electromagnetState);
-  String state = (!EM_state) ? "true" : "false";
+  bool turn_on = (cmdValue == 1) || (cmdValue == 2 && !electromagnetState); 
 
-  char state_msg[50];
-  sprintf(state_msg, state_templ.c_str(), state.c_str());
-
-  if(EM_state){
-    deactivateElectromagnet();
-  } else {
+  if(turn_on){
     activateElectromagnet();
+  } else {
+    deactivateElectromagnet();
   }
-
+  
   updateEMStatus();  
 }
 
