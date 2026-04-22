@@ -1,6 +1,6 @@
 # Rehabilitation Devices for One-Handed Interaction
 
-This project focuses on the design and development of compact rehabilitation devices intended for children who have difficulty using one hand. The goal is to provide engaging physical objects that help stimulate motor activity and interaction during therapy exercises.
+This project focuses on the design and development of compact rehabilitation devices intended for children who cant use one hand. The goal is to provide engaging physical objects that help stimulate motor activity and interaction during therapy exercises.
 
 The devices integrate sensing, actuation, and wireless communication in a very compact form factor.
 
@@ -10,8 +10,8 @@ The devices integrate sensing, actuation, and wireless communication in a very c
 
 Each device contains:
 
-- **Electromagnets** used for actuation and interaction with external objects  
-- **Time-of-Flight (ToF) sensors** to detect proximity and movement  
+- **Electromagnets** used for actuation and interaction with the patients 
+- **Time-of-Flight (ToF) sensors** to detect the distance from patients 
 - A **Seeed Studio XIAO ESP32-C6** microcontroller for control and wireless communication  
 
 The devices communicate wirelessly and interact with a browser-based interface, allowing therapists or developers to monitor and control the system.
@@ -22,7 +22,7 @@ The devices communicate wirelessly and interact with a browser-based interface, 
 
 - Embedded firmware for **ESP32-C6**
 - **Bluetooth Low Energy (BLE)** interface for communication with a JavaScript web application
-- **ESP-NOW mesh-style communication** enabling devices to exchange data with each other
+- **ESP-NOW mesh-style communication** enabling mutiple devices to exchange data with each other
 - Integration of multiple sensors and electromagnets in a constrained physical space
 - Designed for **low-power embedded operation**
 
@@ -64,7 +64,7 @@ Main components:
 - **Electromagnets**
 - Custom compact enclosure designed to fit all components
 
-The design focuses on integrating all components into a very small footprint suitable for handheld rehabilitation tools.
+The design focuses on integrating all components into a very small footprint suitable for small objects.
 
 ---
 
@@ -97,20 +97,3 @@ The firmware handles:
     └── Additional documentation
 ```
 
----
-
-## Goals
-
-- Develop interactive objects for **motor rehabilitation**
-- Create **compact embedded systems integrating sensors and actuators**
-- Enable **multi-device interaction through wireless communication**
-- Provide **simple wireless control through a web interface**
-
----
-
-## Future Improvements
-
-- Advanced interaction patterns between devices
-- Improved mesh networking logic
-- Additional sensor types
-- Expanded therapy-focused interaction scenarios
