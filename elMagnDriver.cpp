@@ -6,44 +6,82 @@
 
 // Mode and state variables
 int deviceMode = MODE_MANUAL;
-bool electromagnetState = ELECTROMAGNET_OFF;
+bool EMStates[3] = {ELECTROMAGNET_OFF, ELECTROMAGNET_OFF, ELECTROMAGNET_OFF};
+int EM_in_use = 3; //Until setup_EMs() isn't called the Electromagnets will not work 
 int amplitude = 100;
 
-void setup_EM(){
-  pinMode(POSITIVE_PIN, OUTPUT);
-  pinMode(NEGATIVE_PIN, OUTPUT);
+
+void setup_EMs(){
+  for(uint8_t i=0; i < 3; i++){
+    pinMode(positive_pins[i], OUTPUT);
+    analogWrite(positive_pins[i], 0);
+    delay(10);
+    pinMode(negative_pins[i], OUTPUT);
+    analogWrite(negative_pins[i], 0);
+    delay(20);
+  }
+  EM_in_use = -1;
+  Serial.print("EM value: "); Serial.println(EM_in_use);
 }
 
-void activateElectromagnet() {
-  if (!electromagnetState) {
-    //motors.setM1Speed(motorValue);
-    // analogWrite(NEGATIVE_PIN, 0);
-    // analogWrite(POSITIVE_PIN, EM_POWER);
-    digitalWrite(NEGATIVE_PIN, LOW);
-    digitalWrite(POSITIVE_PIN, HIGH);
+void activateEM(uint8_t EM_num){
+  if(EM_num < 0 || EM_num > 2) return;
+
+  if(EM_in_use != -1 && EM_in_use != EM_num){
+    Serial.println("An EM is already in use!");
+    return;
+  }
+
+  if (!EMStates[EM_num] && enabled_TOFs[EM_num]){
+    EM_in_use = EM_num;
+
+    analogWrite(negative_pins[EM_num], 0);
+    analogWrite(positive_pins[EM_num], EM_POWER);
     
-    electromagnetState = ELECTROMAGNET_ON;
-    Serial.println("Electromagnet ON");
+    EMStates[EM_num] = ELECTROMAGNET_ON;
+    Serial.print("Electromagnet "); Serial.print(EM_num); Serial.println(" is ON!");
   }
 }
 
-void deactivateElectromagnet() {
-  if (electromagnetState) {
-    // First put positive current to 0
-    // analogWrite(POSITIVE_PIN, 0);
-    digitalWrite(POSITIVE_PIN, LOW);
+void deactivateEM(uint8_t EM_num){
+  if(EM_num < 0 || EM_num > 2) return;
 
+  if(EM_in_use != -1 && EM_in_use != EM_num){
+    Serial.println("An EM is already in use!");
+    return;
+  }
+
+  if (EMStates[EM_num] && enabled_TOFs[EM_num]){
+    // First put positive current to 0
+    analogWrite(positive_pins[EM_num], 0);
     // Then pass negative current for some time 
-    // analogWrite(NEGATIVE_PIN, EM_BACK_CURRENT_POWER);
-    digitalWrite(NEGATIVE_PIN, HIGH);
+    analogWrite(negative_pins[EM_num], EM_BACK_CURRENT_POWER);
     delay(EM_BACK_CURRENT_DELAY);
 
     // Finally set negative current also back to 0
-    // analogWrite(NEGATIVE_PIN, 0);
-    digitalWrite(NEGATIVE_PIN, LOW);
+    analogWrite(negative_pins[EM_num], 0);
 
-    electromagnetState = ELECTROMAGNET_OFF;
+    EMStates[EM_num] = ELECTROMAGNET_OFF;
+
+    EM_in_use = -1;
+
     Serial.println("Electromagnet OFF");
+  }
+}
+
+
+void toggleEM(uint8_t EM_num){
+  if(EM_num < 0 || EM_num > 2) return;
+
+  if(EM_in_use != -1 && EM_in_use != EM_num){
+    Serial.println("An EM is already in use!");
+    return;
+  }
+
+  if (!EMStates[EM_num] && enabled_TOFs[EM_num]){
+    activateEM(EM_num);
+  } else if(enabled_TOFs[EM_num]){
+    deactivateEM(EM_num);
   }
 }
 
